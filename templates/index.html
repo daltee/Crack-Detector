@@ -3,62 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crack Detector Pro - Web Analysis</title>
+    <title>Crack Detector Pro - Infrastructure Analysis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Adding Lucide icons for that modern feel -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="dark-mode">
-    <div class="container">
-        <header>
-            <h1>CRACK DETECTOR PRO</h1>
-            <p>Advanced 2D FFT Infrastructure Monitoring</p>
-        </header>
-
-        <main>
-            <div class="controls-card card">
-                <div class="button-group">
-                    <label for="image-input" class="btn btn-accent">📁 Upload Image</label>
-                    <input id="image-input" type="file" accept="image/*" hidden />
-
-                    <button id="camera-btn" class="btn btn-accent">📷 Open Camera</button>
-                    <button id="process-btn" class="btn btn-primary" disabled>⚡ Process Image</button>
-                </div>
-
-                <div class="toggles">
-                    <button id="appearance-toggle" class="btn btn-secondary">🌓 Toggle Mode</button>
-                    <button id="theme-toggle" class="btn btn-secondary">🎨 Toggle Theme</button>
-                </div>
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo">CRACK DETECTOR</h1>
             </div>
 
-            <div id="camera-container" class="card" style="display: none;">
-                <video id="video" width="100%" autoplay playsinline></video>
-                <button id="snap-btn" class="btn btn-primary">📸 Capture Photo</button>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <label for="image-input" class="nav-item btn-accent">
+                        <i data-lucide="upload"></i>
+                        <span>Upload Image</span>
+                    </label>
+                    <input id="image-input" type="file" accept="image/*" hidden />
+
+                    <button id="camera-btn" class="nav-item btn-accent">
+                        <i data-lucide="camera"></i>
+                        <span>Start Camera</span>
+                    </button>
+
+                    <button id="process-btn" class="nav-item btn-primary" disabled>
+                        <i data-lucide="zap"></i>
+                        <span>Process Image</span>
+                    </button>
+                </div>
+
+                <div class="nav-spacer"></div>
+
+                <div class="nav-settings">
+                    <div class="setting-group">
+                        <label>Appearance Mode</label>
+                        <select id="appearance-select" class="select-menu">
+                            <option value="dark">Dark</option>
+                            <option value="light">Light</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-group">
+                        <label>Accent Color</label>
+                        <select id="theme-select" class="select-menu">
+                            <option value="green">Green</option>
+                            <option value="cyan">Cyan</option>
+                        </select>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="camera-container" class="card hidden">
+                <div class="camera-wrapper">
+                    <video id="video" autoplay playsinline></video>
+                    <button id="snap-btn" class="btn btn-primary">
+                        <i data-lucide="aperture"></i>
+                        Capture Photo
+                    </button>
+                </div>
                 <canvas id="canvas" style="display:none;"></canvas>
             </div>
 
-            <section class="display-section">
-                <div class="results-container">
-                    <div class="card">
+            <div class="display-grid">
+                <div class="card display-card">
+                    <div class="card-header">
                         <h3>Original Source</h3>
-                        <div id="original-preview" class="image-preview">
-                            <span class="placeholder">Waiting for input...</span>
-                        </div>
                     </div>
-                    <div class="card">
-                        <h3>FFT Detection Result</h3>
-                        <div id="result-preview" class="image-preview">
-                            <span class="placeholder">Analysis ready</span>
+                    <div id="original-preview" class="image-preview">
+                        <div class="placeholder-content">
+                            <i data-lucide="image"></i>
+                            <span>Waiting for input...</span>
                         </div>
                     </div>
                 </div>
-            </section>
-        </main>
 
-        <footer>
-            <p>&copy; 2024 Crack Detector Project | Professional Infrastructure Tools</p>
-        </footer>
+                <div class="card display-card">
+                    <div class="card-header">
+                        <h3>FFT Detection Result</h3>
+                    </div>
+                    <div id="result-preview" class="image-preview">
+                        <div class="placeholder-content">
+                            <i data-lucide="activity"></i>
+                            <span>Analysis ready</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
+        // Initialize Icons
+        lucide.createIcons();
+
         const imageInput = document.getElementById('image-input');
         const processBtn = document.getElementById('process-btn');
         const cameraBtn = document.getElementById('camera-btn');
@@ -70,19 +113,28 @@
         const originalPreview = document.getElementById('original-preview');
         const resultPreview = document.getElementById('result-preview');
 
-        const appearanceToggle = document.getElementById('appearance-toggle');
-        const themeToggle = document.getElementById('theme-toggle');
+        const appearanceSelect = document.getElementById('appearance-select');
+        const themeSelect = document.getElementById('theme-select');
 
         let currentBlob = null;
 
-        // Appearance & Theme Toggles
-        appearanceToggle.addEventListener('click', () => {
-            document.body.classList.toggle('light-mode');
-            document.body.classList.toggle('dark-mode');
+        // Settings Handlers
+        appearanceSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'light') {
+                document.body.classList.remove('dark-mode');
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.add('dark-mode');
+                document.body.classList.remove('light-mode');
+            }
         });
 
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('cyan-theme');
+        themeSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'cyan') {
+                document.body.classList.add('cyan-theme');
+            } else {
+                document.body.classList.remove('cyan-theme');
+            }
         });
 
         // Image Upload
@@ -96,7 +148,7 @@
                     processBtn.disabled = false;
                 };
                 reader.readAsDataURL(file);
-                cameraContainer.style.display = 'none';
+                cameraContainer.classList.add('hidden');
                 stopCamera();
             }
         });
@@ -105,9 +157,19 @@
         let stream = null;
         cameraBtn.addEventListener('click', async () => {
             try {
+                if (stream) {
+                    stopCamera();
+                    cameraContainer.classList.add('hidden');
+                    cameraBtn.innerHTML = '<i data-lucide="camera"></i><span>Start Camera</span>';
+                    lucide.createIcons();
+                    return;
+                }
+
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 video.srcObject = stream;
-                cameraContainer.style.display = 'block';
+                cameraContainer.classList.remove('hidden');
+                cameraBtn.innerHTML = '<i data-lucide="square"></i><span>Stop Camera</span>';
+                lucide.createIcons();
             } catch (err) {
                 alert("Error accessing camera: " + err);
             }
@@ -127,7 +189,9 @@
             });
 
             stopCamera();
-            cameraContainer.style.display = 'none';
+            cameraContainer.classList.add('hidden');
+            cameraBtn.innerHTML = '<i data-lucide="camera"></i><span>Start Camera</span>';
+            lucide.createIcons();
         });
 
         function stopCamera() {
@@ -145,8 +209,11 @@
             formData.append('image', currentBlob, 'image.png');
 
             processBtn.disabled = true;
-            processBtn.innerText = '⏳ Processing...';
-            resultPreview.innerHTML = '<span class="placeholder">Analyzing frequencies...</span>';
+            processBtn.innerHTML = '<i data-lucide="loader" class="spin"></i><span>Processing...</span>';
+            lucide.createIcons();
+
+            resultPreview.innerHTML = '<div class="placeholder-content"><i data-lucide="refresh-cw" class="spin"></i><span>Analyzing frequencies...</span></div>';
+            lucide.createIcons();
 
             try {
                 const response = await fetch('/process', { method: 'POST', body: formData });
@@ -161,7 +228,8 @@
                 alert('Connection error');
             } finally {
                 processBtn.disabled = false;
-                processBtn.innerText = '⚡ Process Image';
+                processBtn.innerHTML = '<i data-lucide="zap"></i><span>Process Image</span>';
+                lucide.createIcons();
             }
         });
     </script>
