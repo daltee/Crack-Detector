@@ -3,42 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crack Detector - 2D FFT Analysis</title>
+    <title>Crack Detector Pro - Web Analysis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
+<body class="dark-mode">
     <div class="container">
         <header>
-            <h1>Crack Detector</h1>
-            <p>2D FFT-based automated crack detection</p>
+            <h1>CRACK DETECTOR PRO</h1>
+            <p>Advanced 2D FFT Infrastructure Monitoring</p>
         </header>
 
         <main>
-            <section class="upload-section">
-                <div class="card">
-                    <h2>Upload Image</h2>
-                    <form id="upload-form">
-                        <label for="image-input" class="custom-file-upload">
-                            Choose File
-                        </label>
-                        <input id="image-input" type="file" accept="image/*" />
-                        <button type="submit" id="process-btn" disabled>Process Image</button>
-                    </form>
-                </div>
-            </section>
+            <div class="controls-card card">
+                <div class="button-group">
+                    <label for="image-input" class="btn btn-accent">📁 Upload Image</label>
+                    <input id="image-input" type="file" accept="image/*" hidden />
 
-            <section class="results-section">
+                    <button id="camera-btn" class="btn btn-accent">📷 Open Camera</button>
+                    <button id="process-btn" class="btn btn-primary" disabled>⚡ Process Image</button>
+                </div>
+
+                <div class="toggles">
+                    <button id="appearance-toggle" class="btn btn-secondary">🌓 Toggle Mode</button>
+                    <button id="theme-toggle" class="btn btn-secondary">🎨 Toggle Theme</button>
+                </div>
+            </div>
+
+            <div id="camera-container" class="card" style="display: none;">
+                <video id="video" width="100%" autoplay playsinline></video>
+                <button id="snap-btn" class="btn btn-primary">📸 Capture Photo</button>
+                <canvas id="canvas" style="display:none;"></canvas>
+            </div>
+
+            <section class="display-section">
                 <div class="results-container">
                     <div class="card">
-                        <h3>Original</h3>
+                        <h3>Original Source</h3>
                         <div id="original-preview" class="image-preview">
-                            <span class="placeholder">No image selected</span>
+                            <span class="placeholder">Waiting for input...</span>
                         </div>
                     </div>
                     <div class="card">
-                        <h3>Detected Cracks</h3>
+                        <h3>FFT Detection Result</h3>
                         <div id="result-preview" class="image-preview">
-                            <span class="placeholder">Awaiting processing...</span>
+                            <span class="placeholder">Analysis ready</span>
                         </div>
                     </div>
                 </div>
@@ -46,61 +54,114 @@
         </main>
 
         <footer>
-            <p>&copy; 2024 Crack Detector Project</p>
+            <p>&copy; 2024 Crack Detector Project | Professional Infrastructure Tools</p>
         </footer>
     </div>
 
     <script>
         const imageInput = document.getElementById('image-input');
-        const uploadForm = document.getElementById('upload-form');
         const processBtn = document.getElementById('process-btn');
+        const cameraBtn = document.getElementById('camera-btn');
+        const snapBtn = document.getElementById('snap-btn');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const cameraContainer = document.getElementById('camera-container');
+
         const originalPreview = document.getElementById('original-preview');
         const resultPreview = document.getElementById('result-preview');
 
+        const appearanceToggle = document.getElementById('appearance-toggle');
+        const themeToggle = document.getElementById('theme-toggle');
+
+        let currentBlob = null;
+
+        // Appearance & Theme Toggles
+        appearanceToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            document.body.classList.toggle('dark-mode');
+        });
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('cyan-theme');
+        });
+
+        // Image Upload
         imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                currentBlob = file;
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = (event) => {
                     originalPreview.innerHTML = `<img src="${event.target.result}" alt="Original">`;
                     processBtn.disabled = false;
                 };
                 reader.readAsDataURL(file);
+                cameraContainer.style.display = 'none';
+                stopCamera();
             }
         });
 
-        uploadForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const file = imageInput.files[0];
-            if (!file) return;
+        // Camera Handling
+        let stream = null;
+        cameraBtn.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+                cameraContainer.style.display = 'block';
+            } catch (err) {
+                alert("Error accessing camera: " + err);
+            }
+        });
+
+        snapBtn.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            const dataUrl = canvas.toDataURL('image/png');
+            originalPreview.innerHTML = `<img src="${dataUrl}" alt="Captured">`;
+
+            canvas.toBlob((blob) => {
+                currentBlob = blob;
+                processBtn.disabled = false;
+            });
+
+            stopCamera();
+            cameraContainer.style.display = 'none';
+        });
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+        }
+
+        // Processing
+        processBtn.addEventListener('click', async () => {
+            if (!currentBlob) return;
 
             const formData = new FormData();
-            formData.append('image', file);
+            formData.append('image', currentBlob, 'image.png');
 
             processBtn.disabled = true;
-            processBtn.innerText = 'Processing...';
-            resultPreview.innerHTML = '<span class="placeholder">Processing...</span>';
+            processBtn.innerText = '⏳ Processing...';
+            resultPreview.innerHTML = '<span class="placeholder">Analyzing frequencies...</span>';
 
             try {
-                const response = await fetch('/process', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await fetch('/process', { method: 'POST', body: formData });
                 const data = await response.json();
 
                 if (data.result) {
                     resultPreview.innerHTML = `<img src="${data.result}" alt="Result">`;
                 } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
-                    resultPreview.innerHTML = '<span class="placeholder">Error occurred</span>';
+                    alert('Error: ' + data.error);
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred during processing.');
-                resultPreview.innerHTML = '<span class="placeholder">Error occurred</span>';
+                alert('Connection error');
             } finally {
                 processBtn.disabled = false;
-                processBtn.innerText = 'Process Image';
+                processBtn.innerText = '⚡ Process Image';
             }
         });
     </script>
