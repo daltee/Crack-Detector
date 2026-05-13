@@ -3,104 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crack Detector - 2D FFT Analysis</title>
+    <title>Crack Detector Pro - Infrastructure Analysis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Adding Lucide icons for that modern feel -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Crack Detector</h1>
-            <p>2D FFT-based automated crack detection</p>
-        </header>
+<body class="dark-mode">
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo">CRACK DETECTOR</h1>
+            </div>
 
-        <main>
-            <section class="upload-section">
-                <div class="card">
-                    <h2>Upload Image</h2>
-                    <form id="upload-form">
-                        <label for="image-input" class="custom-file-upload">
-                            Choose File
-                        </label>
-                        <input id="image-input" type="file" accept="image/*" />
-                        <button type="submit" id="process-btn" disabled>Process Image</button>
-                    </form>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <label for="image-input" class="nav-item btn-accent">
+                        <i data-lucide="upload"></i>
+                        <span>Upload Image</span>
+                    </label>
+                    <input id="image-input" type="file" accept="image/*" hidden />
+
+                    <button id="camera-btn" class="nav-item btn-accent">
+                        <i data-lucide="camera"></i>
+                        <span>Start Camera</span>
+                    </button>
+
+                    <button id="process-btn" class="nav-item btn-primary" disabled>
+                        <i data-lucide="zap"></i>
+                        <span>Process Image</span>
+                    </button>
                 </div>
-            </section>
 
-            <section class="results-section">
-                <div class="results-container">
-                    <div class="card">
-                        <h3>Original</h3>
-                        <div id="original-preview" class="image-preview">
-                            <span class="placeholder">No image selected</span>
+                <div class="nav-spacer"></div>
+
+                <div class="nav-settings">
+                    <div class="setting-group">
+                        <label>Appearance Mode</label>
+                        <select id="appearance-select" class="select-menu">
+                            <option value="dark">Dark</option>
+                            <option value="light">Light</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-group">
+                        <label>Accent Color</label>
+                        <select id="theme-select" class="select-menu">
+                            <option value="green">Green</option>
+                            <option value="cyan">Cyan</option>
+                        </select>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="camera-container" class="card hidden">
+                <div class="camera-wrapper">
+                    <video id="video" autoplay playsinline></video>
+                    <button id="snap-btn" class="btn btn-primary">
+                        <i data-lucide="aperture"></i>
+                        Capture Photo
+                    </button>
+                </div>
+                <canvas id="canvas" style="display:none;"></canvas>
+            </div>
+
+            <div class="display-grid">
+                <div class="card display-card">
+                    <div class="card-header">
+                        <h3>Original Source</h3>
+                    </div>
+                    <div id="original-preview" class="image-preview">
+                        <div class="placeholder-content">
+                            <i data-lucide="image"></i>
+                            <span>Waiting for input...</span>
                         </div>
                     </div>
-                    <div class="card">
-                        <h3>Detected Cracks</h3>
-                        <div id="result-preview" class="image-preview">
-                            <span class="placeholder">Awaiting processing...</span>
+                </div>
+
+                <div class="card display-card">
+                    <div class="card-header">
+                        <h3>FFT Detection Result</h3>
+                    </div>
+                    <div id="result-preview" class="image-preview">
+                        <div class="placeholder-content">
+                            <i data-lucide="activity"></i>
+                            <span>Analysis ready</span>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
         </main>
-
-        <footer>
-            <p>&copy; 2024 Crack Detector Project</p>
-        </footer>
     </div>
 
     <script>
+        // Initialize Icons
+        lucide.createIcons();
+
         const imageInput = document.getElementById('image-input');
-        const uploadForm = document.getElementById('upload-form');
         const processBtn = document.getElementById('process-btn');
+        const cameraBtn = document.getElementById('camera-btn');
+        const snapBtn = document.getElementById('snap-btn');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const cameraContainer = document.getElementById('camera-container');
+
         const originalPreview = document.getElementById('original-preview');
         const resultPreview = document.getElementById('result-preview');
 
+        const appearanceSelect = document.getElementById('appearance-select');
+        const themeSelect = document.getElementById('theme-select');
+
+        let currentBlob = null;
+
+        // Settings Handlers
+        appearanceSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'light') {
+                document.body.classList.remove('dark-mode');
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.add('dark-mode');
+                document.body.classList.remove('light-mode');
+            }
+        });
+
+        themeSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'cyan') {
+                document.body.classList.add('cyan-theme');
+            } else {
+                document.body.classList.remove('cyan-theme');
+            }
+        });
+
+        // Image Upload
         imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                currentBlob = file;
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = (event) => {
                     originalPreview.innerHTML = `<img src="${event.target.result}" alt="Original">`;
                     processBtn.disabled = false;
                 };
                 reader.readAsDataURL(file);
+                cameraContainer.classList.add('hidden');
+                stopCamera();
             }
         });
 
-        uploadForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const file = imageInput.files[0];
-            if (!file) return;
+        // Camera Handling
+        let stream = null;
+        cameraBtn.addEventListener('click', async () => {
+            try {
+                if (stream) {
+                    stopCamera();
+                    cameraContainer.classList.add('hidden');
+                    cameraBtn.innerHTML = '<i data-lucide="camera"></i><span>Start Camera</span>';
+                    lucide.createIcons();
+                    return;
+                }
+
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+                cameraContainer.classList.remove('hidden');
+                cameraBtn.innerHTML = '<i data-lucide="square"></i><span>Stop Camera</span>';
+                lucide.createIcons();
+            } catch (err) {
+                alert("Error accessing camera: " + err);
+            }
+        });
+
+        snapBtn.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+
+            const dataUrl = canvas.toDataURL('image/png');
+            originalPreview.innerHTML = `<img src="${dataUrl}" alt="Captured">`;
+
+            canvas.toBlob((blob) => {
+                currentBlob = blob;
+                processBtn.disabled = false;
+            });
+
+            stopCamera();
+            cameraContainer.classList.add('hidden');
+            cameraBtn.innerHTML = '<i data-lucide="camera"></i><span>Start Camera</span>';
+            lucide.createIcons();
+        });
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+        }
+
+        // Processing
+        processBtn.addEventListener('click', async () => {
+            if (!currentBlob) return;
 
             const formData = new FormData();
-            formData.append('image', file);
+            formData.append('image', currentBlob, 'image.png');
 
             processBtn.disabled = true;
-            processBtn.innerText = 'Processing...';
-            resultPreview.innerHTML = '<span class="placeholder">Processing...</span>';
+            processBtn.innerHTML = '<i data-lucide="loader" class="spin"></i><span>Processing...</span>';
+            lucide.createIcons();
+
+            resultPreview.innerHTML = '<div class="placeholder-content"><i data-lucide="refresh-cw" class="spin"></i><span>Analyzing frequencies...</span></div>';
+            lucide.createIcons();
 
             try {
-                const response = await fetch('/process', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await fetch('/process', { method: 'POST', body: formData });
                 const data = await response.json();
 
                 if (data.result) {
                     resultPreview.innerHTML = `<img src="${data.result}" alt="Result">`;
                 } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
-                    resultPreview.innerHTML = '<span class="placeholder">Error occurred</span>';
+                    alert('Error: ' + data.error);
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred during processing.');
-                resultPreview.innerHTML = '<span class="placeholder">Error occurred</span>';
+                alert('Connection error');
             } finally {
                 processBtn.disabled = false;
-                processBtn.innerText = 'Process Image';
+                processBtn.innerHTML = '<i data-lucide="zap"></i><span>Process Image</span>';
+                lucide.createIcons();
             }
         });
     </script>
