@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crack Detector - 2D FFT Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Crack Detector</h1>
+            <p>2D FFT-based automated crack detection</p>
+        </header>
+
+        <main>
+            <section class="upload-section">
+                <div class="card">
+                    <h2>Upload Image</h2>
+                    <form id="upload-form">
+                        <label for="image-input" class="custom-file-upload">
+                            Choose File
+                        </label>
+                        <input id="image-input" type="file" accept="image/*" />
+                        <button type="submit" id="process-btn" disabled>Process Image</button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="results-section">
+                <div class="results-container">
+                    <div class="card">
+                        <h3>Original</h3>
+                        <div id="original-preview" class="image-preview">
+                            <span class="placeholder">No image selected</span>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Detected Cracks</h3>
+                        <div id="result-preview" class="image-preview">
+                            <span class="placeholder">Awaiting processing...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Crack Detector Project</p>
+        </footer>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('image-input');
+        const uploadForm = document.getElementById('upload-form');
+        const processBtn = document.getElementById('process-btn');
+        const originalPreview = document.getElementById('original-preview');
+        const resultPreview = document.getElementById('result-preview');
+
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    originalPreview.innerHTML = `<img src="${event.target.result}" alt="Original">`;
+                    processBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        uploadForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const file = imageInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            processBtn.disabled = true;
+            processBtn.innerText = 'Processing...';
+            resultPreview.innerHTML = '<span class="placeholder">Processing...</span>';
+
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.result) {
+                    resultPreview.innerHTML = `<img src="${data.result}" alt="Result">`;
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                    resultPreview.innerHTML = '<span class="placeholder">Error occurred</span>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred during processing.');
+                resultPreview.innerHTML = '<span class="placeholder">Error occurred</span>';
+            } finally {
+                processBtn.disabled = false;
+                processBtn.innerText = 'Process Image';
+            }
+        });
+    </script>
+</body>
+</html>

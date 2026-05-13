@@ -1,24 +1,40 @@
-# Crack Detector
+# 🏗️ Crack Detector: 2D FFT Analysis
 
-THE Crack Detector leverages 2D Fast Fourier Transform (FFT) for automated crack detection. It converts images into frequency spectra, where high-pass filters are applied to extract fine structural edges. This mathematical approach successfully isolates structural defects from background noise, enabling rapid, autonomous monitoring of critical civil infrastructure.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployment-black?logo=vercel)](https://vercel.com/)
 
-## Features
+**Crack Detector** is an advanced image processing tool that leverages **2D Fast Fourier Transform (FFT)** for automated crack detection in civil infrastructure. It converts images into frequency spectra, applying high-pass filters to isolate fine structural edges and defects from background noise.
 
-- **2D FFT Core Logic**: Math-driven approach to cleanly separate defects from background textures and noise.
-- **Modern GUI**: Built with `CustomTkinter` for a professional, sleek desktop interface.
-- **Real-Time Camera Integration**: Capture photos of walls or roads directly from your PC or mobile hardware (via tools like DroidCam).
-- **Theme & Appearance Customization**: Native Light/Dark mode toggling and Accent Color (Green/Cyan) choices that do not interrupt workflow.
-- **Performance Optimized**: Heavy mathematical tasks are processed on background threads to prevent UI freezing.
+---
 
-## Tech Stack
+## 🌟 Key Features
 
-- **Python 3.x**
-- **OpenCV (`cv2`)**: For hardware camera access and image array management.
-- **NumPy**: For efficient matrix calculations during FFT.
-- **CustomTkinter / Tkinter**: For the modern desktop GUI framework.
-- **Pillow (PIL)**: For responsive, high-quality image resampling in the interface.
+- **🧠 2D FFT Core Logic**: Mathematical approach to cleanly separate defects from background textures.
+- **💻 Desktop GUI**: A sleek, modern desktop interface built with `CustomTkinter`.
+- **🌐 Web Application**: A responsive web-based version that can be accessed from any device (Phone/PC).
+- **📸 Real-Time Integration**: Support for live camera feeds and instant processing.
+- **⚡ Performance Optimized**: Mathematical tasks run on background threads for a smooth user experience.
+- **🚀 Cloud Ready**: Fully configured for one-click deployment to **Vercel**.
 
-## Installation
+---
+
+## 🛠️ Tech Stack
+
+- **Backend**: Python 3.x, Flask (Web), OpenCV, NumPy
+- **Frontend**: CustomTkinter (Desktop), HTML5, CSS3, JavaScript (Web)
+- **Deployment**: Vercel
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Python 3.8 or higher
+- Pip (Python package manager)
+
+### Installation
 
 1. **Clone the repository:**
    ```bash
@@ -26,40 +42,68 @@ THE Crack Detector leverages 2D Fast Fourier Transform (FFT) for automated crack
    cd Crack-Detector
    ```
 
-2. **Install the required dependencies:**
-   It is recommended to use a virtual environment.
+2. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
-   *If you do not have a `requirements.txt`, you can install the packages directly:*
-   ```bash
-   pip install customtkinter opencv-python Pillow numpy
-   ```
 
-## Usage
+---
 
-1. **Start the Application:**
-   ```bash
-   python main_gui.py
-   ```
+## 🖥️ Usage
 
-2. **Upload or Capture:**
-   - Click **"Upload Image"** to browse your local device for an existing photo of infrastructure.
-   - Click **"Start Camera Feed"** to open your webcam or connected camera. Align the camera with the surface, then click **"Capture & Process"**.
+### Desktop Application
+Run the modern GUI for a full-featured desktop experience:
+```bash
+python main_gui.py
+```
 
-3. **View Results:**
-   The interface will display a side-by-side comparison of your original image and the processed FFT output showing detected cracks.
+### Web Application
+Run the local web server to access via browser:
+```bash
+python app.py
+```
+Then open `http://127.0.0.1:5000` in your browser.
 
-## Project Structure
+---
 
-- `main_gui.py`: The entry point for the desktop application containing the CustomTkinter UI.
-- `preprocessing.py`: Handles the initial image cleaning, grayscale conversion, and thresholding.
-- `fft_logic.py`: Contains the core mathematical logic for the 2D FFT conversion and high-pass filtering.
+## ☁️ Deployment
 
-## Contributing
+This project is ready to be deployed on **Vercel**.
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](../../issues).
+1. Push your code to a GitHub repository.
+2. Connect your repository to Vercel.
+3. Vercel will automatically detect the `vercel.json` and deploy the Flask app.
 
-## License
+---
 
-This project is open-source and available under the [MIT License](LICENSE).
+## 📂 Project Structure
+
+- `app.py`: Flask web application entry point.
+- `main_gui.py`: Desktop application entry point.
+- `preprocessing.py`: Image cleaning and enhancement logic.
+- `fft_logic.py`: Core 2D FFT and filtering mathematical logic.
+- `templates/` & `static/`: Frontend assets for the web application.
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+<p align="center">
+  Developed with ❤️ for Infrastructure Safety
+</p>

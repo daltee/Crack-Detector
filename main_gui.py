@@ -8,15 +8,8 @@ import numpy as np
 # -----------------------------------------------------------------------------
 # Import Core Logic 
 # -----------------------------------------------------------------------------
-# Adjust the import names below based on the actual function names in your files.
-try:
-    from preprocessing import preprocess_image
-    from fft_logic import apply_fft_filter
-except ImportError:
-    print("Warning: Core logic modules not found. Using pass-through placeholders.")
-    # Placeholders to allow the GUI to run without throwing errors
-    def preprocess_image(img): return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    def apply_fft_filter(img): return cv2.Canny(img, 100, 200) # Mock edge detection
+from preprocessing import preprocess_image
+from fft_logic import apply_fft_filter
 
 # -----------------------------------------------------------------------------
 # GUI Application Class
