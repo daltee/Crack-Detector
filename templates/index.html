@@ -2,111 +2,105 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crack Detector Pro - FFT Analysis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crack Detector Pro | Infrastructure Frequency Analysis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="dark-mode">
-    <div class="app-wrapper">
+    <div class="app-wrapper" id="app-wrapper">
         <!-- Mobile Header -->
         <header class="mobile-header">
-            <button id="menu-toggle" class="icon-btn">
+            <button id="menu-toggle">
                 <i data-lucide="menu"></i>
             </button>
-            <span class="mobile-logo">CRACK DETECTOR</span>
-            <div style="width: 40px;"></div>
+            <span class="mobile-logo">CRACK DETECTOR PRO</span>
         </header>
 
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
+            <div class="logo-area">
                 <h1 class="logo">CRACK DETECTOR</h1>
             </div>
 
-            <nav class="sidebar-nav">
-                <div class="nav-section">
-                    <label for="image-input" class="nav-item btn-accent">
-                        <i data-lucide="plus-circle"></i>
-                        <span>Add Photos</span>
-                    </label>
-                    <input id="image-input" type="file" accept="image/*" multiple hidden />
+            <nav class="nav-group">
+                <label for="image-input" class="btn-nav btn-upload">
+                    <i data-lucide="plus-circle"></i>
+                    <span>Add Photos</span>
+                </label>
+                <input id="image-input" type="file" accept="image/*" multiple hidden />
 
-                    <button id="camera-btn" class="nav-item btn-accent">
-                        <i data-lucide="camera"></i>
-                        <span>Use Camera</span>
-                    </button>
+                <button id="camera-btn" class="btn-nav btn-camera">
+                    <i data-lucide="camera"></i>
+                    <span>Use Camera</span>
+                </button>
 
-                    <button id="process-btn" class="nav-item btn-primary" disabled>
-                        <i data-lucide="zap"></i>
-                        <span>Process Selected</span>
-                    </button>
-
-                    <button id="clear-all-btn" class="nav-item btn-danger" style="margin-top: 10px;">
-                        <i data-lucide="trash-2"></i>
-                        <span>Clear All Images</span>
-                    </button>
-                </div>
-
-                <div class="nav-spacer"></div>
-
-                <!-- Gallery Section -->
-                <div class="nav-settings">
-                    <label>Image Queue</label>
-                    <div id="gallery-list" class="gallery-container">
-                        <!-- Thumbnails will appear here -->
-                    </div>
-                </div>
-
-                <div class="nav-settings">
-                    <div class="setting-group">
-                        <label>Appearance</label>
-                        <select id="appearance-select" class="select-menu">
-                            <option value="dark">Dark Mode</option>
-                            <option value="light">Light Mode</option>
-                        </select>
-                    </div>
-                </div>
+                <button id="process-btn" class="btn-nav btn-action" disabled>
+                    <i data-lucide="zap"></i>
+                    <span>Process Selected</span>
+                </button>
             </nav>
+
+            <div class="gallery-section">
+                <span class="section-label">Session Queue</span>
+                <div id="gallery-grid" class="gallery-grid">
+                    <!-- Dynamic Thumbnails -->
+                </div>
+                <button id="clear-all-btn" class="btn-danger-alt" style="width: 100%; margin-top: 12px; display: none;">
+                    <i data-lucide="trash-2"></i> Clear Session
+                </button>
+            </div>
+
+            <div class="sidebar-spacer"></div>
+
+            <div class="appearance-box">
+                <span class="section-label">Appearance</span>
+                <div class="toggle-switch">
+                    <div class="toggle-option active" data-mode="dark">Dark</div>
+                    <div class="toggle-option" data-mode="light">Light</div>
+                </div>
+            </div>
         </aside>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <div id="camera-container" class="card hidden">
+        <main class="main-content" id="main-content">
+            <!-- Camera View (Hidden by default) -->
+            <div id="camera-panel" class="camera-panel hidden">
                 <div class="camera-wrapper">
                     <video id="video" autoplay playsinline></video>
-                    <button id="snap-btn" class="btn btn-primary">
-                        <i data-lucide="aperture"></i>
-                        Capture & Add
-                    </button>
+                    <div class="snap-overlay">
+                        <button id="snap-btn" class="btn-nav btn-action">
+                            <i data-lucide="aperture"></i> Capture Photo
+                        </button>
+                    </div>
                 </div>
                 <canvas id="canvas" style="display:none;"></canvas>
             </div>
 
-            <!-- Active Analysis View -->
+            <!-- Analysis Results Grid -->
             <div class="results-grid">
-                <div class="card result-card">
-                    <div class="card-header"><h3>Original Image</h3></div>
-                    <div id="preview-original" class="image-box">
-                        <div class="placeholder"><i data-lucide="image"></i></div>
+                <div class="card">
+                    <span class="card-title">Original Source</span>
+                    <div id="view-original" class="visual-box">
+                        <div class="placeholder-ui"><i data-lucide="image"></i><span>Ready for input</span></div>
                     </div>
                 </div>
-                <div class="card result-card">
-                    <div class="card-header"><h3>Frequency Spectrum</h3></div>
-                    <div id="preview-spectrum" class="image-box">
-                        <div class="placeholder"><i data-lucide="activity"></i></div>
+                <div class="card">
+                    <span class="card-title">FFT Frequency Spectrum</span>
+                    <div id="view-spectrum" class="visual-box">
+                        <div class="placeholder-ui"><i data-lucide="activity"></i><span>Analysis pending</span></div>
                     </div>
                 </div>
-                <div class="card result-card">
-                    <div class="card-header"><h3>High-Pass Filter</h3></div>
-                    <div id="preview-filter" class="image-box">
-                        <div class="placeholder"><i data-lucide="circle"></i></div>
+                <div class="card">
+                    <span class="card-title">High-Pass Filter Mask</span>
+                    <div id="view-filter" class="visual-box">
+                        <div class="placeholder-ui"><i data-lucide="circle"></i><span>Analysis pending</span></div>
                     </div>
                 </div>
-                <div class="card result-card">
-                    <div class="card-header"><h3>Detected Features</h3></div>
-                    <div id="preview-result" class="image-box">
-                        <div class="placeholder"><i data-lucide="scan"></i></div>
+                <div class="card">
+                    <span class="card-title">Detected Structural Features</span>
+                    <div id="view-result" class="visual-box">
+                        <div class="placeholder-ui"><i data-lucide="scan"></i><span>Analysis pending</span></div>
                     </div>
                 </div>
             </div>
@@ -116,6 +110,7 @@
     <script>
         lucide.createIcons();
 
+        const appWrapper = document.getElementById('app-wrapper');
         const sidebar = document.getElementById('sidebar');
         const menuToggle = document.getElementById('menu-toggle');
         const imageInput = document.getElementById('image-input');
@@ -123,51 +118,75 @@
         const cameraBtn = document.getElementById('camera-btn');
         const snapBtn = document.getElementById('snap-btn');
         const video = document.getElementById('video');
-        const cameraContainer = document.getElementById('camera-container');
-        const appearanceSelect = document.getElementById('appearance-select');
-        const galleryList = document.getElementById('gallery-list');
+        const cameraPanel = document.getElementById('camera-panel');
+        const galleryGrid = document.getElementById('gallery-grid');
         const clearAllBtn = document.getElementById('clear-all-btn');
+        const toggleOptions = document.querySelectorAll('.toggle-option');
 
         let imageQueue = [];
         let selectedIndex = -1;
         let stream = null;
 
-        // Mobile Menu Toggle
+        // Mobile Menu Logic
         menuToggle.addEventListener('click', () => {
             sidebar.classList.toggle('active');
-            const icon = sidebar.classList.contains('active') ? 'x' : 'menu';
-            menuToggle.innerHTML = `<i data-lucide="${icon}"></i>`;
+            appWrapper.classList.toggle('menu-open');
+            menuToggle.innerHTML = sidebar.classList.contains('active') ? '<i data-lucide="x"></i>' : '<i data-lucide="menu"></i>';
             lucide.createIcons();
         });
 
-        appearanceSelect.addEventListener('change', (e) => {
-            document.body.className = e.target.value === 'light' ? 'light-mode' : 'dark-mode';
+        // Close menu on backdrop click for mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
+                if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.remove('active');
+                    appWrapper.classList.remove('menu-open');
+                    menuToggle.innerHTML = '<i data-lucide="menu"></i>';
+                    lucide.createIcons();
+                }
+            }
         });
 
-        // Add to Queue
-        function addImageToQueue(blob) {
-            const url = URL.createObjectURL(blob);
-            imageQueue.push({ blob, previewUrl: url, results: null });
+        // Theme Toggle
+        toggleOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                toggleOptions.forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                document.body.className = opt.dataset.mode + '-mode';
+            });
+        });
+
+        // Core App Logic
+        function addImages(files) {
+            Array.from(files).forEach(file => {
+                const url = URL.createObjectURL(file);
+                imageQueue.push({ blob: file, url, results: null });
+            });
             renderGallery();
-            selectImage(imageQueue.length - 1);
+            if (selectedIndex === -1) selectImage(0);
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+                appWrapper.classList.remove('menu-open');
+                menuToggle.innerHTML = '<i data-lucide="menu"></i>';
+                lucide.createIcons();
+            }
         }
 
-        // Render Gallery
         function renderGallery() {
-            galleryList.innerHTML = '';
+            galleryGrid.innerHTML = '';
             imageQueue.forEach((item, index) => {
-                const thumb = document.createElement('div');
-                thumb.className = `gallery-item ${index === selectedIndex ? 'active' : ''}`;
-                thumb.innerHTML = `
-                    <img src="${item.previewUrl}" onclick="selectImage(${index})">
-                    <button class="discard-btn" onclick="discardImage(${index}, event)">
-                        <i data-lucide="x"></i>
-                    </button>
+                const div = document.createElement('div');
+                div.className = `gallery-item ${index === selectedIndex ? 'active' : ''}`;
+                div.innerHTML = `
+                    <img src="${item.url}" onclick="selectImage(${index})">
+                    <div class="item-status ${item.results ? 'processed' : ''}"></div>
+                    <button class="discard-btn" onclick="discardImage(${index}, event)"><i data-lucide="x"></i></button>
                 `;
-                galleryList.appendChild(thumb);
+                galleryGrid.appendChild(div);
             });
-            lucide.createIcons();
+            clearAllBtn.style.display = imageQueue.length > 0 ? 'block' : 'none';
             processBtn.disabled = imageQueue.length === 0;
+            lucide.createIcons();
         }
 
         function selectImage(index) {
@@ -176,14 +195,14 @@
             const item = imageQueue[index];
 
             if (item.results) {
-                document.getElementById('preview-original').innerHTML = `<img src="${item.results.original}">`;
-                document.getElementById('preview-spectrum').innerHTML = `<img src="${item.results.spectrum}">`;
-                document.getElementById('preview-filter').innerHTML = `<img src="${item.results.filter}">`;
-                document.getElementById('preview-result').innerHTML = `<img src="${item.results.result}">`;
+                document.getElementById('view-original').innerHTML = `<img src="${item.results.original}">`;
+                document.getElementById('view-spectrum').innerHTML = `<img src="${item.results.spectrum}">`;
+                document.getElementById('view-filter').innerHTML = `<img src="${item.results.filter}">`;
+                document.getElementById('view-result').innerHTML = `<img src="${item.results.result}">`;
             } else {
-                document.getElementById('preview-original').innerHTML = `<img src="${item.previewUrl}">`;
+                document.getElementById('view-original').innerHTML = `<img src="${item.url}">`;
                 ['spectrum', 'filter', 'result'].forEach(id => {
-                    document.getElementById(`preview-${id}`).innerHTML = '<div class="placeholder"><i data-lucide="clock"></i></div>';
+                    document.getElementById(`view-${id}`).innerHTML = '<div class="placeholder-ui"><i data-lucide="clock" class="spin"></i><span>Waiting for process</span></div>';
                 });
                 lucide.createIcons();
             }
@@ -192,49 +211,52 @@
 
         window.discardImage = function(index, event) {
             event.stopPropagation();
-            URL.revokeObjectURL(imageQueue[index].previewUrl);
+            URL.revokeObjectURL(imageQueue[index].url);
             imageQueue.splice(index, 1);
             if (selectedIndex >= imageQueue.length) selectedIndex = imageQueue.length - 1;
             if (imageQueue.length === 0) {
                 selectedIndex = -1;
-                resetView();
+                resetAnalysisView();
             } else {
                 selectImage(selectedIndex);
             }
             renderGallery();
         };
 
-        function resetView() {
+        function resetAnalysisView() {
             ['original', 'spectrum', 'filter', 'result'].forEach(id => {
-                document.getElementById(`preview-${id}`).innerHTML = '<div class="placeholder"><i data-lucide="image"></i></div>';
+                const icon = id === 'original' ? 'image' : (id === 'spectrum' ? 'activity' : (id === 'filter' ? 'circle' : 'scan'));
+                document.getElementById(`view-${id}`).innerHTML = `<div class="placeholder-ui"><i data-lucide="${icon}"></i><span>Ready for input</span></div>`;
             });
             lucide.createIcons();
         }
 
         clearAllBtn.addEventListener('click', () => {
-            imageQueue.forEach(item => URL.revokeObjectURL(item.previewUrl));
+            imageQueue.forEach(i => URL.revokeObjectURL(i.url));
             imageQueue = [];
             selectedIndex = -1;
-            resetView();
+            resetAnalysisView();
             renderGallery();
         });
 
-        // Input Handlers
-        imageInput.addEventListener('change', (e) => {
-            Array.from(e.target.files).forEach(file => addImageToQueue(file));
-            if (window.innerWidth <= 900) sidebar.classList.remove('active');
-        });
+        // Event Listeners
+        imageInput.addEventListener('change', (e) => addImages(e.target.files));
 
         cameraBtn.addEventListener('click', async () => {
             if (stream) { stopCamera(); return; }
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 video.srcObject = stream;
-                cameraContainer.classList.remove('hidden');
-                cameraBtn.innerHTML = '<i data-lucide="square"></i><span>Stop Camera</span>';
+                cameraPanel.classList.remove('hidden');
+                cameraBtn.innerHTML = '<i data-lucide="square"></i><span>Close Camera</span>';
                 lucide.createIcons();
-                if (window.innerWidth <= 900) sidebar.classList.remove('active');
-            } catch (err) { alert(err); }
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('active');
+                    appWrapper.classList.remove('menu-open');
+                    menuToggle.innerHTML = '<i data-lucide="menu"></i>';
+                    lucide.createIcons();
+                }
+            } catch (err) { alert("Camera access denied: " + err.message); }
         });
 
         snapBtn.addEventListener('click', () => {
@@ -242,30 +264,30 @@
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            canvas.toBlob(b => addImageToQueue(b));
+            canvas.toBlob(blob => addImages([blob]));
         });
 
         function stopCamera() {
             if (stream) {
                 stream.getTracks().forEach(t => t.stop());
                 stream = null;
-                cameraContainer.classList.add('hidden');
+                cameraPanel.classList.add('hidden');
                 cameraBtn.innerHTML = '<i data-lucide="camera"></i><span>Use Camera</span>';
                 lucide.createIcons();
             }
         }
 
-        // Processing
         processBtn.addEventListener('click', async () => {
             if (selectedIndex === -1) return;
             const item = imageQueue[selectedIndex];
 
-            const fd = new FormData();
-            fd.append('image', item.blob);
-
             processBtn.disabled = true;
+            const originalText = processBtn.innerHTML;
             processBtn.innerHTML = '<i data-lucide="loader" class="spin"></i><span>Analyzing...</span>';
             lucide.createIcons();
+
+            const fd = new FormData();
+            fd.append('image', item.blob);
 
             try {
                 const res = await fetch('/process', { method: 'POST', body: fd });
@@ -273,11 +295,12 @@
                 if (data.error) throw new Error(data.error);
 
                 item.results = data;
-                selectImage(selectedIndex);
-            } catch (err) { alert(err.message); }
-            finally {
+                selectImage(selectedIndex); // Re-render views with results
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
                 processBtn.disabled = false;
-                processBtn.innerHTML = '<i data-lucide="zap"></i><span>Process Selected</span>';
+                processBtn.innerHTML = originalText;
                 lucide.createIcons();
             }
         });
