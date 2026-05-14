@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Crack Detector Pro | Infrastructure Frequency Analysis</title>
+    <title>Crack Detector Pro | Structural Integrity Scanner</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -75,21 +75,29 @@
         <main class="main-content" id="main-content">
             <!-- Analysis Results Grid -->
             <div class="results-grid">
-                <div id="camera-card" class="card hidden">
+                <!-- Camera Panel as the 1st frame in the grid -->
+                <div id="camera-card" class="card">
                     <span class="card-title">Live Camera</span>
                     <div class="visual-box camera-box">
                         <video id="video" autoplay playsinline></video>
                         <canvas id="canvas" style="display:none;"></canvas>
+
+                        <div id="camera-placeholder" class="placeholder-ui">
+                            <i data-lucide="camera-off"></i>
+                            <span>Camera inactive</span>
+                        </div>
+
                         <div class="camera-controls">
-                            <button id="snap-btn" class="btn-icon-round btn-snap" title="Capture">
+                            <button id="snap-btn" class="btn-icon-round btn-snap" title="Capture" style="display: none;">
                                 <i data-lucide="aperture"></i>
                             </button>
-                            <button id="close-camera-btn" class="btn-icon-round btn-close-cam" title="Close">
+                            <button id="close-camera-btn" class="btn-icon-round btn-close-cam" title="Close" style="display: none;">
                                 <i data-lucide="x"></i>
                             </button>
                         </div>
                     </div>
                 </div>
+
                 <div class="card">
                     <span class="card-title">Original Image</span>
                     <div id="view-original" class="visual-box">
@@ -130,7 +138,8 @@
         const cameraBtn = document.getElementById('camera-btn');
         const snapBtn = document.getElementById('snap-btn');
         const video = document.getElementById('video');
-        const cameraPanel = document.getElementById('camera-panel');
+        const cameraPlaceholder = document.getElementById('camera-placeholder');
+        const closeCameraBtn = document.getElementById('close-camera-btn');
         const galleryGrid = document.getElementById('gallery-grid');
         const clearAllBtn = document.getElementById('clear-all-btn');
         const themeOptions = document.querySelectorAll('.theme-toggle .toggle-option');
@@ -174,8 +183,6 @@
             opt.addEventListener('click', () => {
                 themeOptions.forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
-
-                // Keep accent class if present
                 const currentAccent = document.body.classList.contains('accent-cyan') ? 'accent-cyan' : 'accent-green';
                 document.body.className = opt.dataset.mode + '-mode ' + currentAccent;
             });
@@ -186,7 +193,6 @@
             opt.addEventListener('click', () => {
                 accentOptions.forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
-
                 const isDark = document.body.classList.contains('dark-mode');
                 document.body.className = (isDark ? 'dark-mode' : 'light-mode') + ' accent-' + opt.dataset.accent;
             });
@@ -275,22 +281,21 @@
         // Event Listeners
         imageInput.addEventListener('change', (e) => addImages(e.target.files));
 
-        const cameraCard = document.getElementById('camera-card');
-        const closeCameraBtn = document.getElementById('close-camera-btn');
-
         cameraBtn.addEventListener('click', async () => {
             if (stream) { stopCamera(); return; }
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 video.srcObject = stream;
-                cameraCard.classList.remove('hidden');
+                video.style.display = 'block';
+                cameraPlaceholder.style.display = 'none';
+                snapBtn.style.display = 'flex';
+                closeCameraBtn.style.display = 'flex';
                 cameraBtn.innerHTML = '<i data-lucide="camera-off"></i><span>Close Camera</span>';
                 lucide.createIcons();
 
-                // On mobile, automatically scroll to camera or close sidebar
                 if (window.innerWidth <= 768) {
                     closeSidebar();
-                    cameraCard.scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('camera-card').scrollIntoView({ behavior: 'smooth' });
                 }
             } catch (err) { alert("Camera access denied: " + err.message); }
         });
@@ -315,7 +320,10 @@
             if (stream) {
                 stream.getTracks().forEach(t => t.stop());
                 stream = null;
-                cameraCard.classList.add('hidden');
+                video.style.display = 'none';
+                cameraPlaceholder.style.display = 'flex';
+                snapBtn.style.display = 'none';
+                closeCameraBtn.style.display = 'none';
                 cameraBtn.innerHTML = '<i data-lucide="camera"></i><span>Use Camera</span>';
                 lucide.createIcons();
             }
