@@ -1,14 +1,19 @@
 import os
 import cv2
 import numpy as np
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify
 import base64
 from preprocessing import preprocess_image
 from fft_logic import apply_fft_filter
 import io
-from PIL import Image
 
 app = Flask(__name__)
+
+def encode_image(img):
+    """Helper to convert OpenCV image to base64 string."""
+    if img is None: return None
+    _, buffer = cv2.imencode('.png', img)
+    return f"data:image/png;base64,{base64.b64encode(buffer).decode('utf-8')}"
 
 @app.route('/')
 def index():
@@ -35,14 +40,16 @@ def process():
 
         # Process image
         preprocessed = preprocess_image(img)
-        result = apply_fft_filter(preprocessed)
+        components = apply_fft_filter(preprocessed)
 
-        # Convert result back to image for response
-        _, buffer = cv2.imencode('.png', result)
-        encoded_image = base64.b64encode(buffer).decode('utf-8')
+        # Unpack components
+        orig, spectrum, mask, result = components
 
         return jsonify({
-            'result': f'data:image/png;base64,{encoded_image}'
+            'original': encode_image(orig),
+            'spectrum': encode_image(spectrum),
+            'filter': encode_image(mask),
+            'result': encode_image(result)
         })
 
     except Exception as e:
