@@ -1,70 +1,69 @@
-# 🏗️ Crack Detector Pro: Advanced Frequency Analysis
+# 🏗️ Crack Detector Pro: Advanced Surface Analysis Suite
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployment-black?logo=vercel)](https://vercel.app/)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/daltee/Crack-Detector/graphs/commit-activity)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live_App-black?logo=vercel&style=for-the-badge)](https://vercel.app/)
+[![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue?logo=python&style=for-the-badge)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-**Crack Detector Pro** is a professional-grade image processing suite designed for automated crack detection in infrastructure. By leveraging **2D Fast Fourier Transform (FFT)**, the tool isolates structural defects from complex background textures, providing a powerful diagnostic tool for engineers.
+**Crack Detector Pro** is a high-performance diagnostic toolkit designed for automated crack detection in diverse structural environments. By leveraging **2D Fast Fourier Transform (FFT)** and advanced morphological processing, the application effectively isolates structural defects even on highly textured or patterned surfaces like tiles, concrete, and terrazzo.
 
 ---
 
 ## ✨ Key Features
 
-- **🧠 Advanced Frequency Analysis**: Uses 2D FFT to isolate high-frequency crack signatures from low-frequency surface textures.
-- **📱 Premium Web Experience**: A high-end, glassmorphism-inspired web interface, fully responsive and optimized for mobile devices.
-- **🖼️ Smart Session Queue**: Manage multiple images in a single session. Upload, capture, and process images individually.
-- **🖥️ Desktop & Web Parity**: Both platforms utilize a 4-panel diagnostic grid for consistent analysis results.
-- **🚀 Vercel Ready**: Optimized for seamless cloud deployment with `opencv-python-headless`.
+- **🧠 Intelligent Detection Engine**: Combines Bilateral filtering with Gaussian High-Pass FFT for superior noise suppression and edge preservation.
+- **📱 Responsive Web Dashboard**: Optimized for mobile and desktop viewports, featuring a premium glassmorphism UI.
+- **📸 5-Panel Diagnostic Grid**: Real-time camera feed integrated alongside four stages of frequency and spatial analysis.
+- **🖼️ Session Queue Management**: Capture multiple photos in a single session, process them individually, and discard results as needed.
+- **🎨 Visual Personalization**: Native support for Dark/Light modes and customizable accent colors (Green/Cyan).
+- **🚀 Cloud Ready**: Pre-configured for immediate deployment on Vercel with headless OpenCV support.
 
 ---
 
-## 🔬 Diagnostic Visuals
+## 🔬 How It Works
 
-The system provides a 4-panel diagnostic output to help you understand the detection process:
+The detection pipeline utilizes a multi-stage frequency domain filter:
 
-| Stage | Description |
-| :--- | :--- |
-| **Original Source** | The input image after noise reduction. |
-| **Frequency Spectrum** | A log-scale visualization of the 2D FFT magnitude. |
-| **High-Pass Filter Mask** | The Gaussian mask used to suppress low frequencies. |
-| **Detected Crack Features** | The reconstructed image highlighting structural defects. |
+| Stage | Process | Objective |
+| :--- | :--- | :--- |
+| **1. Live Feed** | MediaStream API | Real-time positioning and capture for on-site inspection. |
+| **2. Preprocessing** | Bilateral Filter | Suppresses texture noise while maintaining sharp edge gradients. |
+| **3. FFT Spectrum** | 2D Fast Fourier | Visualizes image components in the frequency domain. |
+| **4. Gaussian Mask** | High-Pass Filter | Blocks low-frequency surface patterns while isolating high-frequency cracks. |
+| **5. Final Result** | Inverse FFT + Otsu | Reconstructs the spatial image for binary feature extraction. |
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Installation & Usage
 
-### Installation
-```bash
-git clone https://github.com/daltee/Crack-Detector.git
-cd Crack-Detector
-pip install -r requirements.txt
-```
-
-### Usage
-#### 🌐 Web Application (Local)
-```bash
-python app.py
-```
-Visit `http://localhost:5000` in your browser.
-
-#### 🖥️ Desktop Application
-```bash
-python main_gui.py
-```
+### Local Development
+1. **Clone & Install**:
+   ```bash
+   git clone https://github.com/daltee/Crack-Detector.git
+   cd Crack-Detector
+   pip install -r requirements.txt
+   ```
+2. **Launch Web App**:
+   ```bash
+   python app.py
+   ```
+3. **Launch Desktop GUI**:
+   ```bash
+   python main_gui.py
+   ```
 
 ---
 
 ## ☁️ Vercel Deployment
 
-This repository is optimized for Vercel.
+This repository is optimized for **Vercel** serverless functions.
 
-1. Connect your GitHub repository to [Vercel](https://vercel.com).
-2. The `vercel.json` and `requirements.txt` will be automatically detected.
-3. Deploy! Your scanner is now live with mobile camera support.
+1. **Push** your code to GitHub.
+2. **Import** the project on [Vercel Dashboard](https://vercel.com/new).
+3. The `vercel.json` and `requirements.txt` (using `opencv-python-headless`) ensure a zero-config deployment.
+4. Access your scanner from any mobile device via the generated Vercel URL.
 
 ---
 
 <p align="center">
-  Developed for Infrastructure Safety & Modern Engineering Workflows
+  <i>Engineered for Infrastructure Safety & Modern Inspection Workflows.</i>
 </p>
