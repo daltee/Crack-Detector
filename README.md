@@ -1,4 +1,4 @@
-# 🏗️ Crack Detector Pro: 2D FFT Analysis
+# 🏗️ Crack Detector Pro: Advanced Frequency Analysis
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -11,28 +11,24 @@
 ## ✨ Key Features
 
 - **🧠 Advanced Frequency Analysis**: Uses 2D FFT to isolate high-frequency crack signatures from low-frequency surface textures.
-- **📱 Multi-Image Web App**: A mobile-responsive web interface that supports bulk uploads, camera captures, and a processing queue.
-- **🖼️ Diagnostic Gallery**: Manage multiple images in a session. Discard individual photos or clear the entire queue with one click.
-- **🖥️ Desktop Power**: A dedicated desktop application for high-resolution analysis with a modern `CustomTkinter` UI.
-- **🛠️ Multi-Stage Visuals**: Visualizes the original image, frequency spectrum, high-pass filter mask, and final detected features.
-- **🚀 One-Click Cloud Deployment**: Pre-configured for seamless deployment to **Vercel**.
+- **📱 Premium Web Experience**: A high-end, glassmorphism-inspired web interface that is fully responsive and optimized for mobile devices.
+- **🖼️ Smart Session Queue**: Manage multiple images in a session. Upload, capture, select, and process images individually with real-time status indicators.
+- **🖥️ Professional Desktop App**: A dedicated desktop application for high-resolution analysis with a modern `CustomTkinter` UI.
+- **🛠️ Multi-Stage Visuals**: High-fidelity visualization of the Original Image, Frequency Spectrum, High-Pass Filter Mask, and Detected Features.
+- **🚀 Cloud-Native**: Pre-configured for seamless deployment to **Vercel** with headless browser/OS support.
 
 ---
 
 ## 🔬 How It Works
 
-1. **Preprocessing**: The image is denoised using bilateral filtering to preserve edge sharpness.
-2. **Fourier Transform**: The spatial image is converted into the frequency domain.
-3. **High-Pass Filtering**: Low-frequency components (smooth surfaces, uniform textures) are suppressed.
-4. **Reconstruction**: The inverse FFT reconstructs the image, leaving only the sharp structural edges (cracks).
+1. **Preprocessing**: The image is denoised using bilateral filtering to preserve edge sharpness while removing background grain.
+2. **Fourier Transform**: The spatial image is converted into the frequency domain using 2D FFT.
+3. **High-Pass Filtering**: Low-frequency components (uniform surfaces, large textures) are suppressed via a Gaussian high-pass mask.
+4. **Reconstruction**: The inverse FFT reconstructs the image, emphasizing the sharp structural edges and cracks.
 
 ---
 
 ## 🚀 Quick Start
-
-### Prerequisites
-- Python 3.8+
-- OpenCV & NumPy
 
 ### Installation
 ```bash
@@ -56,21 +52,21 @@ Visit `http://localhost:5000` in your browser.
 
 ## ☁️ Vercel Deployment
 
-This repository is optimized for Vercel's serverless environment.
+This repository is optimized for Vercel.
 
 1. Connect your GitHub repository to [Vercel](https://vercel.com).
 2. The `vercel.json` and `requirements.txt` will be automatically detected.
-3. Deploy! Your scanner is now live on the web.
+3. Deploy! Your scanner is now live on the web with mobile camera support.
 
 ---
 
 ## 📂 Architecture
 
-- `app.py`: Flask backend for the web application.
+- `app.py`: Flask backend optimized for cloud/serverless.
 - `main_gui.py`: Modern desktop GUI frontend.
 - `fft_logic.py`: Core mathematical engine for frequency analysis.
-- `preprocessing.py`: Image conditioning and noise reduction.
-- `static/` & `templates/`: Professional web frontend assets.
+- `preprocessing.py`: Image conditioning and noise reduction logic.
+- `static/` & `templates/`: High-performance, responsive web assets.
 
 ---
 
