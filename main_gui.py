@@ -23,6 +23,7 @@ class CrackDetectorApp(ctk.CTk):
         self.current_theme_color = "#2FA572"
 
         self.image_array = None
+        self.current_frame = None
         self.camera_active = False
         self.cap = None
 
@@ -57,7 +58,13 @@ class CrackDetectorApp(ctk.CTk):
         self.appearance_label.grid(row=9, column=0, padx=20, pady=(10, 0))
         self.appearance_menu = ctk.CTkOptionMenu(self.sidebar_frame, values=["Dark", "Light"],
                                                  command=self.change_appearance_mode)
-        self.appearance_menu.grid(row=10, column=0, padx=20, pady=(5, 30))
+        self.appearance_menu.grid(row=10, column=0, padx=20, pady=(5, 10))
+
+        self.accent_label = ctk.CTkLabel(self.sidebar_frame, text="Accent Color:", anchor="w")
+        self.accent_label.grid(row=11, column=0, padx=20, pady=(10, 0))
+        self.accent_menu = ctk.CTkOptionMenu(self.sidebar_frame, values=["Green", "Cyan"],
+                                               command=self.change_accent_color)
+        self.accent_menu.grid(row=12, column=0, padx=20, pady=(5, 30))
 
         # --- Main Display (4 Panel Grid) ---
         self.main_content = ctk.CTkFrame(self, fg_color="transparent")
@@ -65,11 +72,12 @@ class CrackDetectorApp(ctk.CTk):
         self.main_content.grid_columnconfigure((0, 1), weight=1)
         self.main_content.grid_rowconfigure((1, 3), weight=1)
 
-        # Labels for 4 panels
-        self.titles = ["Original Gray", "Frequency Spectrum", "High-Pass Filter", "Detected Features"]
+        # Labels for 5 panels
+        self.titles = ["Live Camera", "Original Gray", "Frequency Spectrum", "High-Pass Filter", "Detected Features"]
         self.display_labels = []
 
         for i, title in enumerate(self.titles):
+            # 2 columns, dynamic rows
             r, c = (i // 2) * 2, i % 2
             lbl_title = ctk.CTkLabel(self.main_content, text=title, font=ctk.CTkFont(size=14, weight="bold"))
             lbl_title.grid(row=r, column=c, pady=(10, 5))
@@ -81,12 +89,19 @@ class CrackDetectorApp(ctk.CTk):
     def change_appearance_mode(self, mode: str):
         ctk.set_appearance_mode(mode)
 
+    def change_accent_color(self, color: str):
+        theme = "green" if color == "Green" else "blue" # blue looks like cyan in CTK
+        ctk.set_default_color_theme(theme)
+        # Note: CTK doesn't support hot-swapping themes perfectly without restart,
+        # but we can try to update some manual colors.
+        self.current_theme_color = "#2FA572" if color == "Green" else "#3B8ED0"
+        self.logo_label.configure(text_color=self.current_theme_color)
+
     def upload_image(self):
-        if self.camera_active: self.toggle_camera()
         path = filedialog.askopenfilename(filetypes=[("Images", "*.jpg *.png *.jpeg *.bmp")])
         if path:
             self.image_array = cv2.imread(path)
-            self._display_on_label(self.image_array, self.display_labels[0])
+            self._display_on_label(self.image_array, self.display_labels[1]) # Original Gray is index 1
             self._execute_processing()
 
     def toggle_camera(self):
@@ -112,17 +127,19 @@ class CrackDetectorApp(ctk.CTk):
         if self.camera_active and self.cap.isOpened():
             ret, frame = self.cap.read()
             if ret:
-                self.image_array = frame
+                # Update only the Camera panel (index 0)
                 self._display_on_label(frame, self.display_labels[0])
+                self.current_frame = frame
             self.after(30, self._stream_loop)
 
     def capture_frame(self):
-        if self.image_array is not None:
-            self.toggle_camera()
+        if hasattr(self, 'current_frame'):
+            self.image_array = self.current_frame.copy()
+            self._display_on_label(self.image_array, self.display_labels[1])
             self._execute_processing()
 
     def _execute_processing(self):
-        for lbl in self.display_labels[1:]:
+        for lbl in self.display_labels[2:]:
             lbl.configure(text="Processing...", image="")
         threading.Thread(target=self._process_worker, daemon=True).start()
 
@@ -131,9 +148,11 @@ class CrackDetectorApp(ctk.CTk):
             refined = preprocess_image(self.image_array)
             components = apply_fft_filter(refined)
             
+            # components are [OriginalGray, Spectrum, Filter, Result]
+            # We map them to display_labels index 1, 2, 3, 4
             for i, img in enumerate(components):
                 if img is not None:
-                    self.after(0, lambda x=img, l=self.display_labels[i]: self._display_on_label(x, l))
+                    self.after(0, lambda x=img, l=self.display_labels[i+1]: self._display_on_label(x, l))
         except Exception as e:
             self.after(0, lambda: messagebox.showerror("Processing Error", str(e)))
 

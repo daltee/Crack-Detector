@@ -58,30 +58,38 @@
 
             <div class="appearance-box">
                 <span class="section-label">Appearance</span>
-                <div class="toggle-switch">
+                <div class="toggle-switch theme-toggle">
                     <div class="toggle-option active" data-mode="dark">Dark</div>
                     <div class="toggle-option" data-mode="light">Light</div>
+                </div>
+
+                <span class="section-label" style="margin-top: 16px;">Accent Color</span>
+                <div class="toggle-switch accent-toggle">
+                    <div class="toggle-option active" data-accent="green">Green</div>
+                    <div class="toggle-option" data-accent="cyan">Cyan</div>
                 </div>
             </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content" id="main-content">
-            <!-- Camera View (Hidden by default) -->
-            <div id="camera-panel" class="camera-panel hidden">
-                <div class="camera-wrapper">
-                    <video id="video" autoplay playsinline></video>
-                    <div class="snap-overlay">
-                        <button id="snap-btn" class="btn-nav btn-action">
-                            <i data-lucide="aperture"></i> Capture Photo
-                        </button>
-                    </div>
-                </div>
-                <canvas id="canvas" style="display:none;"></canvas>
-            </div>
-
             <!-- Analysis Results Grid -->
             <div class="results-grid">
+                <div id="camera-card" class="card hidden">
+                    <span class="card-title">Live Camera</span>
+                    <div class="visual-box camera-box">
+                        <video id="video" autoplay playsinline></video>
+                        <canvas id="canvas" style="display:none;"></canvas>
+                        <div class="camera-controls">
+                            <button id="snap-btn" class="btn-icon-round btn-snap" title="Capture">
+                                <i data-lucide="aperture"></i>
+                            </button>
+                            <button id="close-camera-btn" class="btn-icon-round btn-close-cam" title="Close">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <div class="card">
                     <span class="card-title">Original Image</span>
                     <div id="view-original" class="visual-box">
@@ -125,7 +133,8 @@
         const cameraPanel = document.getElementById('camera-panel');
         const galleryGrid = document.getElementById('gallery-grid');
         const clearAllBtn = document.getElementById('clear-all-btn');
-        const toggleOptions = document.querySelectorAll('.toggle-option');
+        const themeOptions = document.querySelectorAll('.theme-toggle .toggle-option');
+        const accentOptions = document.querySelectorAll('.accent-toggle .toggle-option');
 
         let imageQueue = [];
         let selectedIndex = -1;
@@ -161,11 +170,25 @@
         });
 
         // Theme Toggle
-        toggleOptions.forEach(opt => {
+        themeOptions.forEach(opt => {
             opt.addEventListener('click', () => {
-                toggleOptions.forEach(o => o.classList.remove('active'));
+                themeOptions.forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
-                document.body.className = opt.dataset.mode + '-mode';
+
+                // Keep accent class if present
+                const currentAccent = document.body.classList.contains('accent-cyan') ? 'accent-cyan' : 'accent-green';
+                document.body.className = opt.dataset.mode + '-mode ' + currentAccent;
+            });
+        });
+
+        // Accent Toggle
+        accentOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                accentOptions.forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+
+                const isDark = document.body.classList.contains('dark-mode');
+                document.body.className = (isDark ? 'dark-mode' : 'light-mode') + ' accent-' + opt.dataset.accent;
             });
         });
 
@@ -252,39 +275,47 @@
         // Event Listeners
         imageInput.addEventListener('change', (e) => addImages(e.target.files));
 
+        const cameraCard = document.getElementById('camera-card');
+        const closeCameraBtn = document.getElementById('close-camera-btn');
+
         cameraBtn.addEventListener('click', async () => {
             if (stream) { stopCamera(); return; }
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 video.srcObject = stream;
-                cameraPanel.classList.remove('hidden');
-                cameraBtn.innerHTML = '<i data-lucide="square"></i><span>Close Camera</span>';
+                cameraCard.classList.remove('hidden');
+                cameraBtn.innerHTML = '<i data-lucide="camera-off"></i><span>Close Camera</span>';
                 lucide.createIcons();
+
+                // On mobile, automatically scroll to camera or close sidebar
                 if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                    appWrapper.classList.remove('menu-open');
-                    menuToggle.innerHTML = '<i data-lucide="menu"></i>';
-                    lucide.createIcons();
+                    closeSidebar();
+                    cameraCard.scrollIntoView({ behavior: 'smooth' });
                 }
             } catch (err) { alert("Camera access denied: " + err.message); }
         });
 
+        closeCameraBtn.addEventListener('click', stopCamera);
+
         snapBtn.addEventListener('click', () => {
+            if (!stream) return;
             const canvas = document.getElementById('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
             canvas.toBlob(blob => {
                 addImages([blob]);
-                stopCamera();
-            });
+                // Feedback animation
+                snapBtn.style.transform = 'scale(0.8)';
+                setTimeout(() => snapBtn.style.transform = 'scale(1)', 100);
+            }, 'image/jpeg', 0.9);
         });
 
         function stopCamera() {
             if (stream) {
                 stream.getTracks().forEach(t => t.stop());
                 stream = null;
-                cameraPanel.classList.add('hidden');
+                cameraCard.classList.add('hidden');
                 cameraBtn.innerHTML = '<i data-lucide="camera"></i><span>Use Camera</span>';
                 lucide.createIcons();
             }
