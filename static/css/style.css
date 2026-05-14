@@ -12,7 +12,7 @@
     --glass: rgba(255, 255, 255, 0.03);
     --glass-border: rgba(255, 255, 255, 0.1);
     --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body.light-mode {
@@ -76,6 +76,23 @@ body {
     padding: 32px 24px;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 1100;
+}
+
+.sidebar-close {
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    color: var(--text);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
 }
 
 .logo-area { margin-bottom: 40px; }
@@ -179,15 +196,22 @@ body {
 
 .card:hover { transform: translateY(-4px); background: var(--card-hover); }
 
-.card-title { font-size: 0.85rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+.card-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+    display: block;
+    text-align: center;
+    margin-bottom: 12px;
+}
 
 .visual-box {
-    width: 100%; aspect-ratio: 4/3; background: rgba(0,0,0,0.15);
+    width: 100%; aspect-ratio: auto; min-height: 300px; background: rgba(0,0,0,0.15);
     border-radius: 16px; display: flex; align-items: center; justify-content: center;
     overflow: hidden; border: 1px solid var(--border); position: relative;
 }
 
-.visual-box img { width: 100%; height: 100%; object-fit: contain; }
+.visual-box img { width: 100%; height: auto; object-fit: contain; }
 
 .placeholder-ui { display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--text-dim); opacity: 0.2; }
 .placeholder-ui i { width: 48px; height: 48px; }
@@ -200,8 +224,14 @@ body {
 .camera-wrapper { width: 100%; max-width: 800px; margin: 0 auto; position: relative; }
 video { width: 100%; display: block; }
 .snap-overlay {
-    position: absolute; bottom: 24px; left: 0; right: 0;
+    position: absolute; bottom: 32px; left: 0; right: 0;
     display: flex; justify-content: center;
+}
+
+.snap-overlay .btn-action {
+    padding: 18px 32px;
+    font-size: 1.1rem;
+    border-radius: 50px;
 }
 
 /* Animations */
@@ -216,11 +246,13 @@ video { width: 100%; display: block; }
 
 @media (max-width: 768px) {
     .mobile-header { display: flex; }
+    .sidebar-close { display: flex; }
     .sidebar {
         position: fixed; top: 0; left: 0; bottom: 0;
         transform: translateX(-100%);
         width: 85%; max-width: 320px;
         box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .sidebar.active { transform: translateX(0); }
 

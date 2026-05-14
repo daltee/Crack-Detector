@@ -19,6 +19,9 @@
 
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
+            <button id="sidebar-close" class="sidebar-close">
+                <i data-lucide="x"></i>
+            </button>
             <div class="logo-area">
                 <h1 class="logo">CRACK DETECTOR</h1>
             </div>
@@ -80,25 +83,25 @@
             <!-- Analysis Results Grid -->
             <div class="results-grid">
                 <div class="card">
-                    <span class="card-title">Original Source</span>
+                    <span class="card-title">Original Image</span>
                     <div id="view-original" class="visual-box">
                         <div class="placeholder-ui"><i data-lucide="image"></i><span>Ready for input</span></div>
                     </div>
                 </div>
                 <div class="card">
-                    <span class="card-title">FFT Frequency Spectrum</span>
+                    <span class="card-title">Frequency Spectrum</span>
                     <div id="view-spectrum" class="visual-box">
                         <div class="placeholder-ui"><i data-lucide="activity"></i><span>Analysis pending</span></div>
                     </div>
                 </div>
                 <div class="card">
-                    <span class="card-title">High-Pass Filter Mask</span>
+                    <span class="card-title">High-Pass Filter</span>
                     <div id="view-filter" class="visual-box">
                         <div class="placeholder-ui"><i data-lucide="circle"></i><span>Analysis pending</span></div>
                     </div>
                 </div>
                 <div class="card">
-                    <span class="card-title">Detected Structural Features</span>
+                    <span class="card-title">Detected Crack Features</span>
                     <div id="view-result" class="visual-box">
                         <div class="placeholder-ui"><i data-lucide="scan"></i><span>Analysis pending</span></div>
                     </div>
@@ -112,6 +115,7 @@
 
         const appWrapper = document.getElementById('app-wrapper');
         const sidebar = document.getElementById('sidebar');
+        const sidebarClose = document.getElementById('sidebar-close');
         const menuToggle = document.getElementById('menu-toggle');
         const imageInput = document.getElementById('image-input');
         const processBtn = document.getElementById('process-btn');
@@ -128,12 +132,21 @@
         let stream = null;
 
         // Mobile Menu Logic
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            appWrapper.classList.remove('menu-open');
+            menuToggle.innerHTML = '<i data-lucide="menu"></i>';
+            lucide.createIcons();
+        }
+
         menuToggle.addEventListener('click', () => {
             sidebar.classList.toggle('active');
             appWrapper.classList.toggle('menu-open');
             menuToggle.innerHTML = sidebar.classList.contains('active') ? '<i data-lucide="x"></i>' : '<i data-lucide="menu"></i>';
             lucide.createIcons();
         });
+
+        sidebarClose.addEventListener('click', closeSidebar);
 
         // Close menu on backdrop click for mobile
         document.addEventListener('click', (e) => {
@@ -165,10 +178,7 @@
             renderGallery();
             if (selectedIndex === -1) selectImage(0);
             if (window.innerWidth <= 768) {
-                sidebar.classList.remove('active');
-                appWrapper.classList.remove('menu-open');
-                menuToggle.innerHTML = '<i data-lucide="menu"></i>';
-                lucide.createIcons();
+                closeSidebar();
             }
         }
 
@@ -264,7 +274,10 @@
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            canvas.toBlob(blob => addImages([blob]));
+            canvas.toBlob(blob => {
+                addImages([blob]);
+                stopCamera();
+            });
         });
 
         function stopCamera() {
