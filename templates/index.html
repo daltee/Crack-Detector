@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="dark-mode">
+<body class="dark-mode accent-green">
     <div class="app-wrapper" id="app-wrapper">
         <!-- Mobile Header -->
         <header class="mobile-header">
@@ -42,6 +42,11 @@
                     <i data-lucide="zap"></i>
                     <span>Process Selected</span>
                 </button>
+
+                <button id="process-all-btn" class="btn-nav btn-secondary" disabled>
+                    <i data-lucide="layers"></i>
+                    <span>Process Queue</span>
+                </button>
             </nav>
 
             <div class="gallery-section">
@@ -73,6 +78,19 @@
 
         <!-- Main Content -->
         <main class="main-content" id="main-content">
+            <section class="hero-panel">
+                <div>
+                    <p class="eyebrow">FFT + high-pass structural image analysis</p>
+                    <h2>Highlight fine cracks without changing the core math.</h2>
+                    <p class="hero-copy">Upload or capture a surface photo. The app normalizes lighting, runs a Gaussian high-pass Fourier filter, then overlays crack-like features in red/yellow for fast inspection.</p>
+                </div>
+                <div id="metrics-panel" class="metrics-panel">
+                    <div class="metric"><span>Coverage</span><strong id="metric-coverage">—</strong></div>
+                    <div class="metric"><span>Features</span><strong id="metric-count">—</strong></div>
+                    <div class="metric"><span>Size</span><strong id="metric-size">—</strong></div>
+                </div>
+            </section>
+
             <!-- Analysis Results Grid -->
             <div class="results-grid">
                 <!-- Camera Panel as the 1st frame in the grid -->
@@ -116,11 +134,15 @@
                         <div class="placeholder-ui"><i data-lucide="circle"></i><span>Analysis pending</span></div>
                     </div>
                 </div>
-                <div class="card">
-                    <span class="card-title">Detected Crack Features</span>
+                <div class="card result-card">
+                    <div class="card-heading">
+                        <span class="card-title">Detected Crack Features</span>
+                        <button id="download-result-btn" class="btn-chip" disabled><i data-lucide="download"></i> Export</button>
+                    </div>
                     <div id="view-result" class="visual-box">
                         <div class="placeholder-ui"><i data-lucide="scan"></i><span>Analysis pending</span></div>
                     </div>
+                    <p class="result-note">Red fill marks crack candidates; yellow outlines show connected feature boundaries.</p>
                 </div>
             </div>
         </main>
@@ -136,6 +158,8 @@
         const imageInput = document.getElementById('image-input');
         const processBtn = document.getElementById('process-btn');
         const cameraBtn = document.getElementById('camera-btn');
+        const processAllBtn = document.getElementById('process-all-btn');
+        const downloadResultBtn = document.getElementById('download-result-btn');
         const snapBtn = document.getElementById('snap-btn');
         const video = document.getElementById('video');
         const cameraPlaceholder = document.getElementById('camera-placeholder');
@@ -225,6 +249,7 @@
             });
             clearAllBtn.style.display = imageQueue.length > 0 ? 'block' : 'none';
             processBtn.disabled = imageQueue.length === 0;
+            processAllBtn.disabled = imageQueue.length === 0;
             lucide.createIcons();
         }
 
@@ -238,12 +263,16 @@
                 document.getElementById('view-spectrum').innerHTML = `<img src="${item.results.spectrum}">`;
                 document.getElementById('view-filter').innerHTML = `<img src="${item.results.filter}">`;
                 document.getElementById('view-result').innerHTML = `<img src="${item.results.result}">`;
+                updateMetrics(item.results.metrics);
+                downloadResultBtn.disabled = false;
             } else {
                 document.getElementById('view-original').innerHTML = `<img src="${item.url}">`;
                 ['spectrum', 'filter', 'result'].forEach(id => {
                     document.getElementById(`view-${id}`).innerHTML = '<div class="placeholder-ui"><i data-lucide="clock" class="spin"></i><span>Waiting for process</span></div>';
                 });
                 lucide.createIcons();
+                updateMetrics(null);
+                downloadResultBtn.disabled = true;
             }
             renderGallery();
         }
@@ -262,11 +291,19 @@
             renderGallery();
         };
 
+        function updateMetrics(metrics) {
+            document.getElementById('metric-coverage').textContent = metrics ? `${metrics.coverage_percent}%` : '—';
+            document.getElementById('metric-count').textContent = metrics ? metrics.feature_count : '—';
+            document.getElementById('metric-size').textContent = metrics ? metrics.processed_size : '—';
+        }
+
         function resetAnalysisView() {
             ['original', 'spectrum', 'filter', 'result'].forEach(id => {
                 const icon = id === 'original' ? 'image' : (id === 'spectrum' ? 'activity' : (id === 'filter' ? 'circle' : 'scan'));
                 document.getElementById(`view-${id}`).innerHTML = `<div class="placeholder-ui"><i data-lucide="${icon}"></i><span>Ready for input</span></div>`;
             });
+            updateMetrics(null);
+            downloadResultBtn.disabled = true;
             lucide.createIcons();
         }
 
@@ -329,9 +366,10 @@
             }
         }
 
-        processBtn.addEventListener('click', async () => {
-            if (selectedIndex === -1) return;
-            const item = imageQueue[selectedIndex];
+        async function processImageAt(index) {
+            if (index === -1) return;
+            selectedIndex = index;
+            const item = imageQueue[index];
 
             processBtn.disabled = true;
             const originalText = processBtn.innerHTML;
@@ -347,14 +385,40 @@
                 if (data.error) throw new Error(data.error);
 
                 item.results = data;
-                selectImage(selectedIndex); // Re-render views with results
+                selectImage(index); // Re-render views with results
             } catch (err) {
                 alert("Error: " + err.message);
             } finally {
-                processBtn.disabled = false;
+                processBtn.disabled = imageQueue.length === 0;
+                processAllBtn.disabled = imageQueue.length === 0;
                 processBtn.innerHTML = originalText;
                 lucide.createIcons();
             }
+        }
+
+        processBtn.addEventListener('click', () => processImageAt(selectedIndex));
+
+        processAllBtn.addEventListener('click', async () => {
+            if (imageQueue.length === 0) return;
+            processAllBtn.disabled = true;
+            const originalText = processAllBtn.innerHTML;
+            for (let i = 0; i < imageQueue.length; i++) {
+                processAllBtn.innerHTML = `<i data-lucide="loader" class="spin"></i><span>${i + 1}/${imageQueue.length}</span>`;
+                lucide.createIcons();
+                await processImageAt(i);
+            }
+            processAllBtn.innerHTML = originalText;
+            processAllBtn.disabled = imageQueue.length === 0;
+            lucide.createIcons();
+        });
+
+        downloadResultBtn.addEventListener('click', () => {
+            const item = imageQueue[selectedIndex];
+            if (!item || !item.results) return;
+            const a = document.createElement('a');
+            a.href = item.results.result;
+            a.download = `crack-detection-${selectedIndex + 1}.jpg`;
+            a.click();
         });
     </script>
 </body>
