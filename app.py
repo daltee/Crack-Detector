@@ -9,11 +9,19 @@ import io
 
 app = Flask(__name__)
 
-def encode_image(img):
-    """Helper to convert OpenCV image to base64 string."""
-    if img is None: return None
-    _, buffer = cv2.imencode('.png', img)
-    return f"data:image/png;base64,{base64.b64encode(buffer).decode('utf-8')}"
+def encode_image(img, ext='.jpg', quality=88):
+    """Helper to convert OpenCV image to a compact base64 data URL."""
+    if img is None:
+        return None
+
+    params = []
+    mime = 'image/png'
+    if ext in ('.jpg', '.jpeg'):
+        mime = 'image/jpeg'
+        params = [cv2.IMWRITE_JPEG_QUALITY, quality]
+
+    _, buffer = cv2.imencode(ext, img, params)
+    return f"data:{mime};base64,{base64.b64encode(buffer).decode('utf-8')}"
 
 @app.route('/')
 def index():
@@ -43,13 +51,14 @@ def process():
         components = apply_fft_filter(preprocessed)
 
         # Unpack components
-        orig, spectrum, mask, result = components
+        orig, spectrum, mask, result, metrics = components
 
         return jsonify({
             'original': encode_image(orig),
             'spectrum': encode_image(spectrum),
             'filter': encode_image(mask),
-            'result': encode_image(result)
+            'result': encode_image(result),
+            'metrics': metrics
         })
 
     except Exception as e:
